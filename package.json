@@ -1,0 +1,26 @@
+{
+  "name": "webapps-project-backend",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "This backend is being written with frontend mostly completed.",
+  "main": "index.js",
+  "scripts": {
+    "serve": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inincevic/WebApps-Project-Backend.git"
+  },
+  "author": "Ivan Ninčević",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/inincevic/WebApps-Project-Backend/issues"
+  },
+  "homepage": "https://github.com/inincevic/WebApps-Project-Backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.1",
+    "nodemon": "^2.0.16"
+  }
+}
