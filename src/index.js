@@ -56,6 +56,7 @@ app.post("/login", (req, res) => {
   }
 
   // console.log(validLogin);
+  res.status(201);
   res.send(validLogin);
 });
 
