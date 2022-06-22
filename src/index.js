@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import connectDB from "./db.js";
 
 const app = express();
 const port = 3000;
@@ -14,6 +15,21 @@ const masterUser = {
 //razumijevanje jsona
 app.use(express.json());
 app.use(cors());
+
+app.get("/testdb", async (req, res) => {
+    let db = await connectDB();
+
+    let pokemoni = db.collection("Pokémon");
+    const query = { pokemon_name: "Charmander" };
+    const options = {
+      projection: { _id:0, pokemon_name:1, types:1, colours:1}
+    }
+
+    const pokemon = await pokemoni.findOne(query, options);
+    console.log(pokemon);
+    //res.status(201);
+    res.send(pokemon);
+})
 
 app.get("/pokemoni", (req, res) => {
   console.log("Izvrsava se!");

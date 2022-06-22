@@ -7,12 +7,29 @@ let client = new mongo.MongoClient(connection_string, {
     useUnifiedTopology: true,
  });
 
- client.connect((err) => {
-     if (err) {
-         console.error(err);
-         return;
+ let db = null;
+
+//  client.connect((err) => {
+//      if (err) {
+//          console.error(err);
+//          return;
+//      }
+//      console. log ("Database connected successfully!");
+//
+//      client. close();
+// });
+
+
+function isConnected() {
+    return !!client && !!client.topology && client.topology.isConnected();
+}
+// eksportamo Promise koji resolva na konekciju
+export default async () => {
+     if (!db || !isConnected ()) {
+         await client.connect()
+         db = client.db("PokeGuesserProject");
+         console.log("Connected OK")
      }
-     console. log ("Database connected successfully!");
-     // za sada ništa necemo raditi, samo zatvaramo pristup
-     client. close();
-});
+     else console.log("Already Connected");
+     return db;
+}
