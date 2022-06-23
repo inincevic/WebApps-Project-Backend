@@ -76,6 +76,16 @@ app.post("/login", (req, res) => {
   res.send(validLogin);
 });
 
+app.post("/findpokemon", (req, res) => {
+  console.log("Pokemon atributes recieved");
+  console.log(req.body);
+
+
+
+  res.status(201);
+  res.send("Recieved");
+})
+
 app.listen(port, () => {
   console.log("Example app listening on port", port);
 });
