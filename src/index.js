@@ -88,7 +88,7 @@ app.post("/findpokemon", async (req, res) => {
   let pokemoni = db.collection("Pokémon");
   let colours = db.collection("Primary_Colour");
   let types = db.collection("Primary_Type");
-  let variants = db.collection("Regional_Variants");
+  let variants = db.collection("Regional_Variant");
   let evo_method = db.collection("Evolution_Method");
 
   // Type names -> Type ids
@@ -97,12 +97,14 @@ app.post("/findpokemon", async (req, res) => {
   let type_options = {
     projection: { _id: 1},
   };
-  let type_one_id = await types.findOne(type_one_query, type_options);
-  let type_two_id = await types.findOne(type_two_query, type_options);
+  let type_one_id_original = await types.findOne(type_one_query, type_options);
+  let type_one_id = type_one_id_original._id.toString();
+  let type_two_id_original = await types.findOne(type_two_query, type_options);
+  let type_two_id = type_two_id_original._id.toString();
   console.log(req.body.type_one, type_one_id);
   if (type_two_id != null) {
     console.log(req.body.type_two, type_two_id);
-  } 
+  }
 
 
   // Colour names -> Colour ids
@@ -118,13 +120,48 @@ app.post("/findpokemon", async (req, res) => {
     console.log(req.body.colour_two, colour_two_id);
   } 
 
-  // const query = { pokemon_name: "Charmander" };
-  // const options = {
-  //   projection: { _id: 0, pokemon_name: 1, types: 1, colours: 1 },
-  // };
 
-  // const pokemon = await pokemoni.findOne(query, options);
-  // console.log(pokemon);
+  // Variant names -> variant ids
+  let regional_variant_query = { variant_name: req.body.regional_variant };
+  let regional_variant_options = {
+    projection: { _id: 1},
+  };
+  let variant_id = await variants.findOne(regional_variant_query, regional_variant_options);
+  if(variant_id != null) {
+    console.log(req.body.regional_variant, variant_id);
+  }
+  
+  // Evolution method names -> Evolution method ids
+  let evo_method_query = { method_name: req.body.evolution_method };
+  let evo_method_options = {
+    projection: { _id: 1},
+  };
+  let method_id = await evo_method.findOne(evo_method_query, evo_method_options);
+  if(method_id != null) {
+    console.log(req.body.evolution_method, method_id);
+  }
+
+  let pokemon_query = { 
+    //pokemon_name: "Bulbasaur",
+    types: [{
+        type_id: type_one_id
+      },
+      {
+        type_id: type_two_id
+      }
+    ],
+    // colours: [
+    //   new Object (colour_one_id),
+    //   new Object (colour_two_id)
+    // ]
+  };
+  console.log(pokemon_query)
+  let pokemon_options = {
+    projection: { _id: 0, pokemon_name: 1, types: 1, colours: 1 },
+  };
+
+  let pokemon = await pokemoni.findOne(pokemon_query, pokemon_options);
+  console.log(pokemon);
   // //res.status(201);Primary_Colour
   // res.send(pokemon);
 
