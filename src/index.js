@@ -1,52 +1,68 @@
 import express from "express";
 import cors from "cors";
+import connectDB from "./db.js";
 
 const app = express();
 const port = 3000;
 
 // hard coded shit
 const masterUser = {
-    email: "inincevic@unipu.hr",
-    username: "inincevic",
-    password: "12345",
-  };
+  email: "inincevic@unipu.hr",
+  username: "inincevic",
+  password: "12345",
+};
 
 //razumijevanje jsona
 app.use(express.json());
 app.use(cors());
 
-app.get("/pokemoni", (req, res) => {
-  console.log("Izvrsava se!");
-  let pokemoni = [
-    {
-      name: "Trubbish",
-      primary_type: "Poison",
-      secondary_type: "No secondary type",
-      primary_colour: "Green",
-      secondary_colour: "No secondary colour",
-      stage: "Base",
-      evolution_method: "This pokemon is a base stage",
-    },
-    {
-      name: "Pikachu",
-      primary_type: "Electric",
-      secondary_type: "No secondary type",
-      primary_colour: "Yellow",
-      secondary_colour: "No secondary colour",
-      stage: "Base",
-      evolution_method: "Friendship",
-    },
-  ];
-  res.send(pokemoni);
+app.get("/testdb", async (req, res) => {
+  let db = await connectDB();
+
+  let pokemoni = db.collection("Pokémon");
+  const query = { pokemon_name: "Charmander" };
+  const options = {
+    projection: { _id: 0, pokemon_name: 1, types: 1, colours: 1 },
+  };
+
+  const pokemon = await pokemoni.findOne(query, options);
+  console.log(pokemon);
+  //res.status(201);
+  res.send(pokemon);
 });
+
+// app.get("/pokemoni", (req, res) => {
+//   console.log("Izvrsava se!");
+//   let pokemoni = [
+//     {
+//       name: "Trubbish",
+//       primary_type: "Poison",
+//       secondary_type: "No secondary type",
+//       primary_colour: "Green",
+//       secondary_colour: "No secondary colour",
+//       stage: "Base",
+//       evolution_method: "This pokemon is a base stage",
+//     },
+//     {
+//       name: "Pikachu",
+//       primary_type: "Electric",
+//       secondary_type: "No secondary type",
+//       primary_colour: "Yellow",
+//       secondary_colour: "No secondary colour",
+//       stage: "Base",
+//       evolution_method: "Friendship",
+//     },
+//   ];
+//   res.send(pokemoni);
+// });
 
 app.post("/login", (req, res) => {
   console.log("POST called");
-//   console.log(req.body.email);
-//   console.log(masterUser.email);
-//   console.log(req.body.password);
-//   console.log(masterUser.password);
-  
+  //   console.log(req.body.email);
+  //   console.log(masterUser.email);
+  //   console.log(req.body.password);
+  //   console.log(masterUser.password);
+
   let validLogin = false;
   if (
     req.body.email == masterUser.email &&
@@ -59,6 +75,65 @@ app.post("/login", (req, res) => {
   res.status(201);
   res.send(validLogin);
 });
+
+
+
+
+app.post("/findpokemon", async (req, res) => {
+  console.log("Pokemon atributes recieved");
+  console.log(req.body);
+
+  let db = await connectDB();
+
+  let pokemoni = db.collection("Pokémon");
+  let colours = db.collection("Primary_Colour");
+  let types = db.collection("Primary_Type");
+  let variants = db.collection("Regional_Variants");
+  let evo_method = db.collection("Evolution_Method");
+
+  // Type names -> Type ids
+  let type_one_query = { type_name: req.body.type_one };
+  let type_two_query = { type_name: req.body.type_two };
+  let type_options = {
+    projection: { _id: 1},
+  };
+  let type_one_id = await types.findOne(type_one_query, type_options);
+  let type_two_id = await types.findOne(type_two_query, type_options);
+  console.log(req.body.type_one, type_one_id);
+  if (type_two_id != null) {
+    console.log(req.body.type_two, type_two_id);
+  } 
+
+
+  // Colour names -> Colour ids
+  let colour_one_query = { colour_name: req.body.colour_one };
+  let colour_two_query = {colour_name: req.body.colour_two };
+  let colour_options = {
+    projection: { _id: 1},
+  };
+  let colour_one_id = await colours.findOne(colour_one_query, colour_options);
+  let colour_two_id = await colours.findOne(colour_two_query, colour_options);
+  console.log(req.body.colour_one, colour_one_id);
+  if (colour_two_id != null) {
+    console.log(req.body.colour_two, colour_two_id);
+  } 
+
+  // const query = { pokemon_name: "Charmander" };
+  // const options = {
+  //   projection: { _id: 0, pokemon_name: 1, types: 1, colours: 1 },
+  // };
+
+  // const pokemon = await pokemoni.findOne(query, options);
+  // console.log(pokemon);
+  // //res.status(201);Primary_Colour
+  // res.send(pokemon);
+
+  res.status(201);
+  res.send("Recieved");
+});
+
+
+
 
 app.listen(port, () => {
   console.log("Example app listening on port", port);
