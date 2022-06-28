@@ -98,11 +98,12 @@ app.post("/findpokemon", async (req, res) => {
     projection: { _id: 1},
   };
   let type_one_id_original = await types.findOne(type_one_query, type_options);
-  let type_one_id = type_one_id_original._id.toString();
   let type_two_id_original = await types.findOne(type_two_query, type_options);
-  let type_two_id = type_two_id_original._id.toString();
+  let type_one_id = type_one_id_original._id.toString();
+  let type_two_id = null;
   console.log(req.body.type_one, type_one_id);
-  if (type_two_id != null) {
+  if(type_two_id_original){
+    type_two_id = type_two_id_original._id.toString();
     console.log(req.body.type_two, type_two_id);
   }
 
@@ -113,10 +114,13 @@ app.post("/findpokemon", async (req, res) => {
   let colour_options = {
     projection: { _id: 1},
   };
-  let colour_one_id = await colours.findOne(colour_one_query, colour_options);
-  let colour_two_id = await colours.findOne(colour_two_query, colour_options);
+  let colour_one_id_original = await colours.findOne(colour_one_query, colour_options);
+  let colour_two_id_original = await colours.findOne(colour_two_query, colour_options);
+  let colour_one_id = colour_one_id_original._id.toString();
+  let colour_two_id = null;
   console.log(req.body.colour_one, colour_one_id);
-  if (colour_two_id != null) {
+  if (colour_two_id_original) {
+    colour_two_id = colour_two_id_original._id.toString();
     console.log(req.body.colour_two, colour_two_id);
   } 
 
@@ -141,23 +145,69 @@ app.post("/findpokemon", async (req, res) => {
     console.log(req.body.evolution_method, method_id);
   }
 
-  let pokemon_query = { 
-    //pokemon_name: "Bulbasaur",
-    types: [{
-        type_id: type_one_id
+  //setting up query ---> arrays can't have empty fields so I need if functions for different amounts of entries
+  let pokemon_query = null;
+  if(type_two_id == null && colour_two_id == null){
+    pokemon_query = { 
+      types: {
+          type_id: type_one_id
+        },
+      colours: {
+        colour_id: colour_one_id
+      },
+    };  
+  }
+  else if (type_two_id != null && colour_two_id == null) {
+    pokemon_query = { 
+      types: [{
+          type_id: type_one_id
+        },
+        {
+          type_id: type_two_id
+        }
+      ],
+      colours: {
+        colour_id: colour_one_id
+      },
+    };  
+  }
+  else if (type_two_id == null && colour_two_id != null) {
+    pokemon_query = { 
+      types: {
+          type_id: type_one_id
+        },
+      colours: [{
+          colour_id: colour_one_id
+        },
+        {
+           colour_id: colour_two_id
+        }
+      ]
+    };  
+  }
+  else {
+    pokemon_query = { 
+      //pokemon_name: "Bulbasaur",
+      types: [{
+          type_id: type_one_id
+        },
+        {
+           type_id: type_two_id
+        }
+      ],
+      colours: [{
+        colour_id: colour_one_id
       },
       {
-        type_id: type_two_id
+         colour_id: colour_two_id
       }
-    ],
-    // colours: [
-    //   new Object (colour_one_id),
-    //   new Object (colour_two_id)
-    // ]
-  };
-  console.log(pokemon_query)
+      ]
+    }
+  }
+  //console.log(pokemon_query)
   let pokemon_options = {
     projection: { _id: 0, pokemon_name: 1, types: 1, colours: 1 },
+    sort: { base_stat_total: -1 }
   };
 
   let pokemon = await pokemoni.findOne(pokemon_query, pokemon_options);
