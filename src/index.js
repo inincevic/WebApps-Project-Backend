@@ -206,12 +206,10 @@ app.post("/findpokemon", async (req, res) => {
 
   // finding a Pokémon using the created query
   let pokemon = await pokemoni.findOne(pokemon_query_object, pokemon_options);
+  console.log("------------------------------------ POKEMON FOUND ------------------------------------------------------")
   console.log(pokemon);
 
-  console.log("------------------------------------------------------------------------------------------")
-
   //removing ids and restoring names
-  console.log(pokemon.types[1].type_id)
 
   // Type ids -> Type names 
   type_one_query = { 
@@ -223,7 +221,7 @@ app.post("/findpokemon", async (req, res) => {
 
   let type_one = await types.findOne(type_one_query, type_options);
   pokemon.types[0].type_id = type_one.type_name;
-  console.log("Type one = " + pokemon.types[0].type_id) // DELETE LATER
+  //console.log("Type one = " + pokemon.types[0].type_id) // DELETE LATER
 
   if(pokemon.types.length > 1) {
     type_two_query = { 
@@ -231,8 +229,8 @@ app.post("/findpokemon", async (req, res) => {
     }
     let type_two = await types.findOne(type_two_query, type_options);
 
-    pokemon.types[1].type_id = type_one.type_name;
-    console.log("Type two = " + pokemon.types[1].type_id) // DELETE LATER
+    pokemon.types[1].type_id = type_two.type_name;
+    //console.log("Type two = " + pokemon.types[1].type_id) // DELETE LATER
   }
 
   // Colour ids -> Colour names 
@@ -245,7 +243,7 @@ app.post("/findpokemon", async (req, res) => {
 
   let colour_one = await colours.findOne(colour_one_query, colour_options);
   pokemon.colours[0].colour_id = colour_one.colour_name;
-  console.log("Colour one = " + pokemon.colours[0].colour_id) // DELETE LATER
+  //console.log("Colour one = " + pokemon.colours[0].colour_id) // DELETE LATER
 
   if(pokemon.colours.length > 1) {
     let colour_two_query = { 
@@ -254,12 +252,37 @@ app.post("/findpokemon", async (req, res) => {
     let colour_two = await colours.findOne(colour_two_query, colour_options);
 
     pokemon.colours[1].colour_id = colour_two.colour_name;
-    console.log("Colour two = " + pokemon.colours[1].colour_id) // DELETE LATER
+    //console.log("Colour two = " + pokemon.colours[1].colour_id) // DELETE LATER
   }
-
   
+  // evo_method ids -> evo_method names 
+  let evo_method_query = { 
+    _id: mongoose.Types.ObjectId(pokemon.evolution_method)
+  }
+  let evo_method_options = {
+    projection: { method_name: 1},
+  };
 
-  console.log("------------------------------------------------------------------------------------------")
+  let method = await evo_method.findOne(evo_method_query, evo_method_options);
+  pokemon.evolution_method = method.method_name;
+  //console.log("Evolution method = " + pokemon.evolution_method) // DELETE LATER
+  
+  // regional variant ids -> regional variant names 
+  let variant_query = { 
+    _id: mongoose.Types.ObjectId(pokemon.form)
+  }
+  let variant_options = {
+    projection: { variant_name: 1},
+  };
+
+  let variant = await variants.findOne(variant_query, variant_options);
+  pokemon.form = variant.variant_name;
+  //console.log("Form = " + pokemon.form) // DELETE LATER
+
+  console.log("------------------------------- REPLACING IDS -----------------------------------------")
+
+  console.log(pokemon);
+
   res.status(201);
   res.send(pokemon);
 });
