@@ -49,7 +49,7 @@ app.post("/login", (req, res) => {
     validLogin = true;
   }
 
-  // console.log(validLogin);
+  console.log(validLogin);
   res.status(201);
   res.send(validLogin);
 });
