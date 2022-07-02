@@ -33,13 +33,43 @@ app.get("/testdb", async (req, res) => {
   res.send(pokemon);
 });
 
-//hard-coded login. will be expanded once I get to user creaton
+//registration process
+//data is recieved from fronted and sent to the Users collection in the database
+app.post("/register", async (req, res) => {
+  console.log("Registration called");
+  console.log(req.body);
+
+  //connecting to database and required collecion
+  let db = await connectDB();
+  let users = db.collection("Users");
+
+  //creating an object that is sent to database
+  let user = {
+    "username": req.body.username,
+    "email": req.body.email,
+    "password": req.body.password,
+    "number_guessed": "0",
+    "guessed_pokemon": [],
+    "favourite_pokemon": ""
+  }
+
+  //sending data into the database
+  await users.insertOne(user, function(err, res) {
+    if (err) throw err;
+    console.log("User inserted");
+  });
+
+  res.status(201);
+  res.send("OK");
+})
+
+//login process which gets check if login is correct with the database
+//currently, user data is sent to the frontend, but that might be changed
 app.post("/login", async (req, res) => {
   console.log("Login called");
   
-  //connecting to the database and required collecions
+  //connecting to the database and required collecion
   let db = await connectDB();
-
   let users = db.collection("Users");
 
   let user_query = {
@@ -48,13 +78,13 @@ app.post("/login", async (req, res) => {
   }
 
   let user_options = {
-    projection: { _id: 0, username: 1, email: 1, number_guessed: 1, guessed_pokemon: 1, favourite_pokemon: 1 },
+    projection: { _id: 0, username: 1, number_guessed: 1, guessed_pokemon: 1, favourite_pokemon: 1 },
   };
 
   let user = await users.findOne(user_query, user_options);
   console.log(user)
 
-  
+
   res.status(201);
   res.send(user);
 });
