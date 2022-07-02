@@ -34,24 +34,29 @@ app.get("/testdb", async (req, res) => {
 });
 
 //hard-coded login. will be expanded once I get to user creaton
-app.post("/login", (req, res) => {
-  console.log("POST called");
-  //   console.log(req.body.email);
-  //   console.log(masterUser.email);
-  //   console.log(req.body.password);
-  //   console.log(masterUser.password);
+app.post("/login", async (req, res) => {
+  console.log("Login called");
+  
+  //connecting to the database and required collecions
+  let db = await connectDB();
 
-  let validLogin = false;
-  if (
-    req.body.email == masterUser.email &&
-    req.body.password == masterUser.password
-  ) {
-    validLogin = true;
+  let users = db.collection("Users");
+
+  let user_query = {
+    email: req.body.email,
+    password: req.body.password
   }
 
-  console.log(validLogin);
+  let user_options = {
+    projection: { _id: 0, username: 1, email: 1, number_guessed: 1, guessed_pokemon: 1, favourite_pokemon: 1 },
+  };
+
+  let user = await users.findOne(user_query, user_options);
+  console.log(user)
+
+  
   res.status(201);
-  res.send(validLogin);
+  res.send(user);
 });
 
 // route for finding Pokémon ----> The MOST IMPORTANT part of this applicaitonn
