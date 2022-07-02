@@ -6,16 +6,10 @@ import mongoose from "mongoose";
 const app = express();
 const port = 3000;
 
-// hard coded shit ----------------------- TEMPORARY
-const masterUser = {
-  email: "inincevic@unipu.hr",
-  username: "inincevic",
-  password: "12345",
-};
-
 //understanding JSON
 app.use(express.json());
 app.use(cors());
+
 
 //test route ------------- DELETE LATER
 app.get("/testdb", async (req, res) => {
@@ -32,6 +26,7 @@ app.get("/testdb", async (req, res) => {
   //res.status(201);
   res.send(pokemon);
 });
+
 
 //registration process
 //data is recieved from fronted and sent to the Users collection in the database
@@ -63,6 +58,7 @@ app.post("/register", async (req, res) => {
   res.send("User registered");
 })
 
+
 //login process which gets check if login is correct with the database
 //currently, user data is sent to the frontend, but that might be changed
 app.post("/login", async (req, res) => {
@@ -88,6 +84,7 @@ app.post("/login", async (req, res) => {
   res.status(201);
   res.send(user);
 });
+
 
 // route for finding Pokémon ----> The MOST IMPORTANT part of this applicaitonn
 app.post("/findpokemon", async (req, res) => {
@@ -344,6 +341,7 @@ app.post("/findpokemon", async (req, res) => {
   res.status(201);
   res.send(pokemon);
 });
+
 
 app.listen(port, () => {
   console.log("Example app listening on port", port);
