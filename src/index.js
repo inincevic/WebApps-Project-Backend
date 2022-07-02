@@ -60,7 +60,7 @@ app.post("/register", async (req, res) => {
   });
 
   res.status(201);
-  res.send("OK");
+  res.send("User registered");
 })
 
 //login process which gets check if login is correct with the database
