@@ -10,7 +10,6 @@ const port = 3000;
 app.use(express.json());
 app.use(cors());
 
-
 //test route ------------- DELETE LATER
 app.get("/testdb", async (req, res) => {
   let db = await connectDB();
@@ -27,7 +26,6 @@ app.get("/testdb", async (req, res) => {
   res.send(pokemon);
 });
 
-
 //registration process
 //data is recieved from fronted and sent to the Users collection in the database
 app.post("/register", async (req, res) => {
@@ -40,51 +38,112 @@ app.post("/register", async (req, res) => {
 
   //creating an object that is sent to database
   let user = {
-    "username": req.body.username,
-    "email": req.body.email,
-    "password": req.body.password,
-    "number_guessed": "0",
-    "guessed_pokemon": [],
-    "favourite_pokemon": ""
-  }
+    username: req.body.username,
+    email: req.body.email,
+    password: req.body.password,
+    number_guessed: "0",
+    guessed_pokemon: [],
+    favourite_pokemon: "",
+  };
 
   //sending data into the database
-  await users.insertOne(user, function(err, res) {
+  await users.insertOne(user, function (err, res) {
     if (err) throw err;
     console.log("User inserted");
   });
 
   res.status(201);
   res.send("User registered");
-})
-
+});
 
 //login process which gets check if login is correct with the database
 //currently, user data is sent to the frontend, but that might be changed
 app.post("/login", async (req, res) => {
   console.log("Login called");
-  
+
   //connecting to the database and required collecion
   let db = await connectDB();
   let users = db.collection("Users");
 
   let user_query = {
     email: req.body.email,
-    password: req.body.password
-  }
+    password: req.body.password,
+  };
 
   let user_options = {
-    projection: { _id: 0, username: 1, number_guessed: 1, guessed_pokemon: 1, favourite_pokemon: 1 },
+    projection: {
+      _id: 0,
+      username: 1,
+      number_guessed: 1,
+      guessed_pokemon: 1,
+      favourite_pokemon: 1,
+    },
   };
 
   let user = await users.findOne(user_query, user_options);
-  console.log(user)
-
+  console.log(user); // DELETE LATER
 
   res.status(201);
   res.send(user);
 });
 
+// route for changeing user's favourite pokemon
+// the name of a Pokémon is entered, that name has to be matched with an id and then added to a user
+app.put("/updatefavourite", async (req, res) => {
+  let updated = false;
+  console.log(req.body);
+
+  //connecting to the database and required collecions
+  let db = await connectDB();
+  let users = db.collection("Users");
+  let pokemon_collection = db.collection("Pokémon");
+
+  //finding user to check current favourite Pokémon
+  let user_query = {
+    username: req.body.username,
+  };
+  let user_option = {
+    projection: { _id: 0, favourite_pokemon: 1 },
+  };
+  let current_favourite = await users.findOne(user_query, user_option);
+  //console.log(current_favourite.favourite_pokemon);
+
+  //finding the id of the new favourite Pokémon
+  let pokemon_query = {
+    pokemon_name: req.body.new_favourite_pokemon,
+  };
+  let pokemon_options = {
+    projection: { _id: 1 },
+  };
+  let pokemon = await pokemon_collection.findOne(
+    pokemon_query,
+    pokemon_options
+  );
+  if (pokemon) {
+    let pokemon_id = pokemon._id.toString();
+
+    //console.log(pokemon_id) // DELETE LATER
+
+    //updating the favourite pokemon
+    if (pokemon_id) {
+      if (current_favourite.favourite_pokemon == pokemon_id) {
+        console.log("That is your current favourite Pokémon!");
+      } else {
+        const updateTable = {
+          $set: {
+            favourite_pokemon: pokemon_id,
+          },
+        };
+        const update = await users.updateOne(user_query, updateTable);
+        console.log("Updated");
+        updated = true;
+      }
+    }
+  } else console.log("That Pokémon is not a part of this database");
+
+  res.status(201);
+  res.send(updated);
+});
 
 // route for finding Pokémon ----> The MOST IMPORTANT part of this applicaitonn
 app.post("/findpokemon", async (req, res) => {
@@ -342,6 +401,43 @@ app.post("/findpokemon", async (req, res) => {
   res.send(pokemon);
 });
 
+//route for converting favourite Pokemon's id into name
+app.post("/favouritename", async (req, res) => {
+  let favouriteName = null;
+
+  //connecting to the database and required collecions
+  let db = await connectDB();
+  let users = db.collection("Users");
+  let pokemon_collection = db.collection("Pokémon");
+
+  //finding given user's favourite Pokémon
+  let user_query = {
+    username: req.body.username,
+  };
+  let user_option = {
+    projection: { _id: 0, favourite_pokemon: 1 },
+  };
+  let current_favourite = await users.findOne(user_query, user_option);
+
+  //if the found id is equal to the one given go find the Pokémon's name
+  if (current_favourite) {
+    let pokemon_query = {
+      _id: mongoose.Types.ObjectId(current_favourite.favourite_pokemon),
+    };
+    let pokemon_options = {
+      projection: { _id: 0, pokemon_name: 1 },
+    };
+    let pokemon = await pokemon_collection.findOne(
+      pokemon_query,
+      pokemon_options
+    );
+    favouriteName = pokemon.pokemon_name;
+  } else {
+    console.log("Error");
+  }
+  res.status(201);
+  res.send(favouriteName);
+});
 
 app.listen(port, () => {
   console.log("Example app listening on port", port);
