@@ -468,7 +468,9 @@ app.post("/guessedpokemon", async (req, res) => {
     for (const pokemon in guessed_list.guessed_pokemon) {
       if (guessed_list) {
         let pokemon_query = {
-          _id: mongoose.Types.ObjectId(guessed_list.guessed_pokemon[counter].pokemon_id),
+          _id: mongoose.Types.ObjectId(
+            guessed_list.guessed_pokemon[counter].pokemon_id
+          ),
         };
         let pokemon_options = {
           projection: { _id: 0, pokemon_name: 1 },
@@ -478,17 +480,144 @@ app.post("/guessedpokemon", async (req, res) => {
           pokemon_options
         );
 
-        guessed_pokemon [counter] = pokemon.pokemon_name;
+        guessed_pokemon[counter] = pokemon;
         counter++;
       }
     }
-    if(counter == 0)
-    console.log("This user has not guessed any Pokémon");
-  } 
-
+    if (counter == 0) console.log("This user has not guessed any Pokémon");
+  }
 
   res.status(201);
   res.send(guessed_pokemon);
+});
+
+//get all attributes for displaying on frontend
+app.get("/getattributes", async (req, res) => {
+  let attributes = {
+    types: [],
+    colours: [],
+    evolution_methods: [],
+    forms: [],
+  };
+
+  //connecting to the database and required collecions
+  let db = await connectDB();
+
+  let colours = db.collection("Primary_Colour");
+  let types = db.collection("Primary_Type");
+  let variants = db.collection("Regional_Variant");
+  let evo_method = db.collection("Evolution_Method");
+
+  //getting all types from the database
+  let type_option = {
+    projection: { _id: 0, type_name: 1 },
+  };
+  let all_types = await types.find({}, type_option).toArray();
+  //console.log(all_types); //DELETE LATER
+  attributes.types = all_types;
+
+  //getting all colours from the database
+  let colour_option = {
+    projection: { _id: 0, colour_name: 1 },
+  };
+  let all_colours = await colours.find({}, colour_option).toArray();
+  //console.log(all_colours); //DELETE LATER
+  attributes.colours = all_colours;
+
+  //getting all evolution methods from the database
+  let evo_method_option = {
+    projection: { _id: 0, method_name: 1 },
+  };
+  let all_methods = await evo_method.find({}, evo_method_option).toArray();
+  //console.log(all_types); //DELETE LATER
+  attributes.evolution_methods = all_methods;
+
+  //getting all forms from the database
+  let form_option = {
+    projection: { _id: 0, variant_name: 1 },
+  };
+  let all_forms = await variants.find({}, form_option).toArray();
+  //console.log(all_types); //DELETE LATER
+  attributes.forms = all_forms;
+
+  res.status(201);
+  res.send(attributes);
+});
+
+//updating number of Pokémon guessed and list of guessed Pokémon
+app.put("/updateuser", async (req, res) => {
+  let updated = "";
+
+  //console.log(req.body); //DELETE LATER
+
+  //connecting to the database and required collecions
+  let db = await connectDB();
+  let users = db.collection("Users");
+  let pokemon_collection = db.collection("Pokémon");
+
+  //finding user to check current favourite Pokémon
+  let user_query = {
+    username: req.body.username,
+  };
+  let user_option = {
+    projection: { _id: 0, number_guessed: 1, guessed_pokemon: 1 },
+  };
+  let current_number = await users.findOne(user_query, user_option);
+
+  //finding the id of the Pokémon
+  let pokemon_query = {
+    pokemon_name: req.body.pokemon_name,
+  };
+  let pokemon_options = {
+    projection: { _id: 1 },
+  };
+  let pokemon = await pokemon_collection.findOne(
+    pokemon_query,
+    pokemon_options
+  );
+
+  if (pokemon) {
+    let pokemon_id_check = pokemon._id.toString();
+    //console.log(pokemon_id_check); // DELETE LATER
+
+    //updating the number guessed
+    let existing_check = 0;
+    let counter = 0;
+    for (const pokemon in current_number.guessed_pokemon) {
+      if (
+        current_number.guessed_pokemon[counter].pokemon_id == pokemon_id_check
+      ) {
+        existing_check = 1;
+        updated = "You have already guessed this Pokémon.";
+      }
+      counter++;
+    }
+
+    if (pokemon_id_check && !existing_check) {
+      let guessed = current_number.guessed_pokemon;
+      guessed[current_number.number_guessed] = { pokemon_id: pokemon_id_check };
+      let number = current_number.number_guessed + 1;
+
+      const updateTable = {
+        $set: {
+          number_guessed: number,
+          guessed_pokemon: guessed,
+        },
+      };
+      const update = await users.updateOne(user_query, updateTable);
+      console.log("Updated");
+      updated = "Ok";
+    } else {
+      console.log("Existing");
+      updated = "Existing";
+    }
+  } else {
+    console.log("That Pokémon is not a part of this database");
+    updated = "Not in Database";
+  }
+
+  res.status(201);
+  res.send(updated);
 });
 
 app.listen(port, () => {
