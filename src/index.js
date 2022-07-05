@@ -419,7 +419,7 @@ app.post("/favouritename", async (req, res) => {
   };
   let current_favourite = await users.findOne(user_query, user_option);
 
-  //if the found id is equal to the one given go find the Pokémon's name
+  //if a favourite Pokémon exists, go find his name
   if (current_favourite) {
     let pokemon_query = {
       _id: mongoose.Types.ObjectId(current_favourite.favourite_pokemon),
@@ -437,6 +437,58 @@ app.post("/favouritename", async (req, res) => {
   }
   res.status(201);
   res.send(favouriteName);
+});
+
+//get a list of all found Pokémon
+app.post("/guessedpokemon", async (req, res) => {
+  let guessed_pokemon = [];
+
+  console.log(req.body); //delete later
+
+  //connecting to the database and required collecions
+  let db = await connectDB();
+  let users = db.collection("Users");
+  let pokemon_collection = db.collection("Pokémon");
+
+  //finding the list of user's guessed Pokémon
+  let user_query = {
+    username: req.body.username,
+  };
+  let user_option = {
+    projection: { _id: 0, guessed_pokemon: 1 },
+  };
+  let guessed_list = await users.findOne(user_query, user_option);
+
+  console.log(guessed_list);
+
+  //finding names of pokemon and placing them into guessed_pokemon
+  //checking if any pokemon have been guessed by this user
+  if (guessed_list) {
+    let counter = 0;
+    for (const pokemon in guessed_list.guessed_pokemon) {
+      if (guessed_list) {
+        let pokemon_query = {
+          _id: mongoose.Types.ObjectId(guessed_list.guessed_pokemon[counter].pokemon_id),
+        };
+        let pokemon_options = {
+          projection: { _id: 0, pokemon_name: 1 },
+        };
+        let pokemon = await pokemon_collection.findOne(
+          pokemon_query,
+          pokemon_options
+        );
+
+        guessed_pokemon [counter] = pokemon.pokemon_name;
+        counter++;
+      }
+    }
+    if(counter == 0)
+    console.log("This user has not guessed any Pokémon");
+  } 
+
+
+  res.status(201);
+  res.send(guessed_pokemon);
 });
 
 app.listen(port, () => {
