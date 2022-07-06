@@ -7,7 +7,7 @@ import connectDB from "./db.js";
 import mongoose from "mongoose";
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 5000;
 
 //understanding JSON
 app.use(express.json());
