@@ -1,11 +1,8 @@
-# May 23rd, start of backend
-This backend is being written with frontend mostly completed.
+# Author
+Ivan Ninčević
 
-Unfortunately, database is not done yet as MongoDB being NoSQL database discouraged me entirely.
-Here I will use Python and Flask.
+# Description
+This backend is written in javascript and works hand in hand with a database hosted on MongoDB.
+This is the backend that accompanies frontend written on the following link: https://github.com/inincevic/WebApps-Project-Frontend
 
-For the starting phase I'll use some hard coded data just to test frontend-backend communication.
-
-# May 24th, change in language
-While Flask does sound cool, I can't find any good guides for creating it and connecting it to a pre-existing frontend.
-That's why I have decided to try and get a javascript backend running.
+Visit that link and read the Readme file if you're interested in more information.
